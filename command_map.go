@@ -20,7 +20,7 @@ func commandMap(cfg *config) error {
 
 func commandMapb(cfg *config) error {
 	if cfg.previous == nil {
-		return fmt.Errorf("There is no previous page, use `map` command instead")
+		return fmt.Errorf("No previous pages, use `map` instead.")
 	}
 
 	locationAreas, err := cfg.client.FetchLocationAreas(cfg.previous)
