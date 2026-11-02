@@ -16,42 +16,6 @@ type config struct {
 	previous *string
 }
 
-type cliCommand struct {
-	name        string
-	description string
-	callback    func(*config) error
-}
-
-func getCommands() map[string]cliCommand {
-	commands := map[string]cliCommand{}
-
-	commands["exit"] = cliCommand{
-		name:        "exit",
-		description: "Exit the Pokedex",
-		callback:    commandExit,
-	}
-
-	commands["help"] = cliCommand{
-		name:        "help",
-		description: "Displays a help message",
-		callback:    commandHelp,
-	}
-
-	commands["map"] = cliCommand{
-		name:        "map",
-		description: "Displays the names of 20 location areas in the Pokemon world. Each subsequent call displays the next 20.",
-		callback:    commandMap,
-	}
-
-	commands["mapb"] = cliCommand{
-		name:        "mapb",
-		description: "Displays the previous 20 location areas.",
-		callback:    commandMapb,
-	}
-
-	return commands
-}
-
 func cleanInput(text string) []string {
 	return strings.Fields(strings.ToLower(text))
 }
@@ -67,18 +31,20 @@ func startRepl(cfg *config) {
 			break
 		}
 
-		input := scanner.Text()
-		if len(input) == 0 {
+		parts := cleanInput(scanner.Text())
+
+		if len(parts) == 0 {
 			continue
 		}
 
-		command, ok := cfg.commands[input]
+		command, ok := cfg.commands[parts[0]]
 		if !ok {
-			fmt.Println("Unknown command")
+			fmt.Println(Red + "Unknown command" + Reset)
 			continue
 		}
 
-		if err := command.callback(cfg); err != nil {
+		args := parts[1:]
+		if err := command.callback(cfg, args...); err != nil {
 			fmt.Println(err)
 		}
 	}
