@@ -1,11 +1,15 @@
 package main
 
-import "github.com/3mmarx/pokedexcli/internal/pokeapi"
+import (
+	"time"
+
+	"github.com/3mmarx/pokedexcli/internal/pokeapi"
+)
 
 func main() {
 	cfg := &config{
 		commands: getCommands(),
-		client:   pokeapi.NewClient(),
+		client:   pokeapi.NewClient(5*time.Minute, 5*time.Second),
 		previous: nil,
 		next:     nil,
 	}
