@@ -169,3 +169,52 @@ func (c Client) FetchPokemonsByLocation(locationName string) (PokemonLocationAre
 
 	return pokemons, nil
 }
+
+type Pokemon struct {
+	ID             int    `json:"id"`
+	Name           string `json:"name"`
+	BaseExperience int    `json:"base_experience"`
+	Height         int    `json:"height"`
+	IsDefault      bool   `json:"is_default"`
+	Order          int    `json:"order"`
+	Weight         int    `json:"weight"`
+}
+
+func (c Client) FetchPokemonByName(pokemonName string) (Pokemon, error) {
+	url := BaseURL + "/pokemon/" + pokemonName
+
+	cachedRes, ok := c.cache.Get(url)
+	if ok {
+		var pokemon Pokemon
+		if err := json.Unmarshal(cachedRes, &pokemon); err != nil {
+			return Pokemon{}, err
+		}
+
+		return pokemon, nil
+	}
+
+	res, err := c.Get(url)
+	if err != nil {
+		return Pokemon{}, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return Pokemon{}, fmt.Errorf("unexpected status: %s", res.Status)
+	}
+
+	var pokemon Pokemon
+
+	resBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		return Pokemon{}, err
+	}
+
+	if err := json.Unmarshal(resBytes, &pokemon); err != nil {
+		return Pokemon{}, err
+	}
+
+	c.cache.Add(url, resBytes)
+
+	return pokemon, nil
+}
