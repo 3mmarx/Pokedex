@@ -32,7 +32,29 @@ Go · PokéAPI · in-memory TTL cache
 
 ## How It Works
 
-![Pokedex CLI architecture](docs/architecture.png)
+```mermaid
+flowchart LR
+    user["User (terminal)"]
+
+    subgraph app["pokedexcli"]
+        direction TB
+        repl["REPL\nparse & dispatch input"]
+        cmds["Command handlers\nmap · explore · catch · inspect · pokedex"]
+        state[("Session state (in-memory)\ncaught Pokémon, map pages")]
+        client["PokéAPI client\nHTTP + JSON"]
+        cache[("TTL response cache\nin-memory, mutex-protected")]
+
+        repl -->|dispatch command| cmds
+        cmds <-->|read / update| state
+        cmds -->|request locations & Pokémon| client
+        client <-->|get / store response| cache
+    end
+
+    api["PokéAPI\n(pokeapi.co)"]
+
+    user -->|enter command| repl
+    client -->|GET on cache miss| api
+```
 
 1. `repl.go` reads input, normalizes it, and dispatches commands registered in `commands.go`.
 2. Handlers use in-memory session state for caught Pokémon and map pagination; state resets when the program exits.
