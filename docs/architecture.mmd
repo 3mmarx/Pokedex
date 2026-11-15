@@ -1,13 +1,36 @@
-%%{init: {'theme': 'neutral', 'flowchart': {'curve': 'basis'}}}%%
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "background": "#FFFFFF",
+    "primaryColor": "#F1F5F9",
+    "primaryTextColor": "#0F172A",
+    "primaryBorderColor": "#475569",
+    "secondaryColor": "#E0F2FE",
+    "secondaryTextColor": "#0F172A",
+    "secondaryBorderColor": "#0284C7",
+    "tertiaryColor": "#F8FAFC",
+    "tertiaryTextColor": "#0F172A",
+    "tertiaryBorderColor": "#64748B",
+    "lineColor": "#475569",
+    "textColor": "#0F172A",
+    "nodeTextColor": "#0F172A",
+    "clusterBkg": "#FFFFFF",
+    "clusterBorder": "#94A3B8",
+    "edgeLabelBackground": "#FFFFFF",
+    "fontFamily": "ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
+  },
+  "flowchart": { "curve": "basis", "padding": 16, "htmlLabels": true }
+}}%%
 flowchart LR
-    user["User<br/>(terminal)"]
+    user["User (terminal)"]
 
     subgraph app["pokedexcli"]
-        repl["REPL<br/>read · parse · dispatch"]
-        cmds["Command handlers<br/>map · explore · catch · inspect · pokedex"]
-        state[("Session state<br/>caught Pokémon · page cursors")]
-        client["PokéAPI client<br/>HTTP + JSON"]
-        cache[("Cache<br/>in-memory TTL")]
+        direction TB
+        repl["REPL"]
+        cmds["Commands"]
+        state[("Session state")]
+        client["PokéAPI client"]
+        cache[("Response cache")]
 
         repl --> cmds
         cmds <--> state
@@ -17,5 +40,5 @@ flowchart LR
 
     api["PokéAPI"]
 
-    user -->|command| repl
-    client -->|cache miss| api
+    user --> repl
+    client -->|on cache miss| api
