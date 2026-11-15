@@ -1,40 +1,23 @@
 # Pokedex CLI
 
-An interactive command-line Pokedex built in Go and powered by [PokéAPI](https://pokeapi.co/). Explore location areas, discover and catch Pokémon, and inspect the ones you've collected — all from a lightweight REPL.
+An interactive command-line Pokedex built in Go and powered by [PokéAPI](https://pokeapi.co/). Explore location areas, catch Pokémon, and inspect your collection from a lightweight REPL.
 
-API responses are cached in memory to keep repeated lookups fast and reduce unnecessary network requests.
+![Pokedex CLI demo showing explore, catch, inspect, and pokedex commands](docs/demo.gif)
 
 ## Features
 
 - Interactive REPL with case-insensitive command parsing
-- Browse paginated location areas
-- Explore the Pokémon found in any location
-- Catch Pokémon, with catch difficulty based on base experience
-- Inspect caught Pokémon to view their stats and types
-- List your collection with color-coded entries based on total stats
-- Thread-safe, TTL-based in-memory cache for API responses
+- Browse paginated location areas and explore the Pokémon found in each one
+- Catch Pokémon with a success chance based on base experience
+- Inspect caught Pokémon and list your Pokédex with stat-based coloring
+- In-memory session state for caught Pokémon and map pagination
+- Thread-safe, TTL-based in-memory cache for PokéAPI responses
 
-## Requirements
+## Tech Stack
 
-- [Go](https://go.dev/dl/) 1.27.3 or newer
-- An internet connection to reach PokéAPI
+Go · PokéAPI · in-memory TTL cache
 
-## Installation
-
-```bash
-git clone https://github.com/3mmarx/Pokedex.git
-cd Pokedex
-go build -o pokedexcli
-./pokedexcli
-```
-
-Or run it directly without building a binary:
-
-```bash
-go run .
-```
-
-## Usage
+## Commands
 
 | Command | Description |
 | --- | --- |
@@ -47,76 +30,43 @@ go run .
 | `pokedex` | List every Pokémon you've caught |
 | `exit` | Close the Pokedex |
 
-### Example session
-
-```text
-Pokedex > map
-canalave-city-area
-eterna-city-area
-pastoria-city-area
-...
-
-Pokedex > explore canalave-city-area
-Exploring canalave-city-area...
-- tentacool
-- staryu
-- magikarp
-...
-
-Pokedex > catch magikarp
-Throwing a Pokeball at magikarp...
-magikarp was caught!
-
-Pokedex > inspect magikarp
-Name: magikarp
-Height: 9
-Weight: 100
-Stats:
-  - hp: 20
-  - attack: 10
-  ...
-Types:
-  - water
-
-Pokedex > pokedex
-  - magikarp
-
-Pokedex > exit
-Closing the Pokedex... Goodbye!
-```
-
 ## How It Works
 
-- **REPL** — `repl.go` reads input from stdin, normalizes it to lowercase, and dispatches the command to its registered handler.
-- **Commands** — each command lives in its own `command_*.go` file and is registered in `commands.go`.
-- **API client** — `internal/pokeapi` wraps the PokéAPI endpoints for location areas and Pokémon, with a configurable HTTP timeout.
-- **Cache** — `internal/pokecache` provides a mutex-protected in-memory cache. A background goroutine periodically removes expired entries.
-- **Catching** — each Pokémon's `base_experience` determines its catch chance: stronger Pokémon are harder to catch, while weaker ones are easier.
+```mermaid
+flowchart LR
+    user["User<br/>(terminal)"]
 
-## Project Structure
+    subgraph app["pokedexcli — single Go binary"]
+        direction TB
+        repl["REPL loop<br/>read · normalize · dispatch"]
+        cmds["Command handlers<br/>map · explore · catch<br/>inspect · pokedex"]
+        state[("Session state<br/>caught Pokémon · page cursors")]
+        client["PokéAPI client<br/>HTTP + JSON"]
+        cache[("In-memory cache<br/>TTL + mutex")]
 
-```text
-.
-├── main.go               # Entry point
-├── repl.go               # REPL loop and input parsing
-├── commands.go           # Command registry
-├── command_*.go          # Individual command handlers
-├── colors.go             # Terminal color constants
-├── repl_test.go          # REPL input tests
-└── internal/
-    ├── pokeapi/          # PokéAPI client and response types
-    └── pokecache/        # TTL-based in-memory cache
+        repl --> cmds
+        cmds <--> state
+        cmds --> client
+        client <--> cache
+    end
+
+    api["PokéAPI<br/>(the web)"]
+
+    user -->|types command| repl
+    client -->|cache miss: HTTP GET| api
 ```
 
-## Testing
+1. `repl.go` reads input, normalizes it, and dispatches commands registered in `commands.go`.
+2. Handlers use in-memory session state for caught Pokémon and map pagination; state resets when the program exits.
+3. `internal/pokeapi` fetches location and Pokémon data from PokéAPI, with responses cached in `internal/pokecache` to avoid repeat requests.
+4. `catch` determines success from a Pokémon’s base experience — weaker Pokémon are easier to catch than stronger ones.
+
+## Run locally
+
+Requires [Go](https://go.dev/dl/) 1.27.3 or newer.
 
 ```bash
-go test ./...
+git clone https://github.com/3mmarx/Pokedex.git
+cd Pokedex
+go run .
 ```
-
-## Acknowledgements
-
-- Pokémon data provided by [PokéAPI](https://pokeapi.co/)
-- Built as part of the [Boot.dev](https://www.boot.dev/) backend development path
-
-Pokémon and Pokémon character names are trademarks of Nintendo, Game Freak, and Creatures Inc. This project is for educational purposes and is not affiliated with or endorsed by them.
