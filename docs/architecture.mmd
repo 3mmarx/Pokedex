@@ -18,16 +18,16 @@
     "edgeLabelBackground": "#FFFFFF",
     "fontFamily": "ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
   },
-  "flowchart": { "curve": "basis", "padding": 16 }
+  "flowchart": { "curve": "basis", "padding": 16, "htmlLabels": false }
 }}%%
 flowchart LR
-    user["User<br/>(terminal)"]
+    user["User (terminal)"]
 
     subgraph app["pokedexcli"]
         direction TB
         repl["REPL"]
         cmds["Command handlers"]
-        state[("Session state<br/>caught Pokémon, map pages")]
+        state[("Session state: caught Pokémon, map pages")]
         client["PokéAPI client"]
         cache[("TTL response cache")]
 

@@ -32,7 +32,7 @@ Go · PokéAPI · in-memory TTL cache
 
 ## How It Works
 
-![Pokedex CLI architecture](docs/architecture.svg)
+![Pokedex CLI architecture](docs/architecture.png)
 
 1. `repl.go` reads input, normalizes it, and dispatches commands registered in `commands.go`.
 2. Handlers use in-memory session state for caught Pokémon and map pagination; state resets when the program exits.
