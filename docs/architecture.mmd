@@ -1,0 +1,21 @@
+%%{init: {'theme': 'neutral', 'flowchart': {'curve': 'basis'}}}%%
+flowchart LR
+    user["User<br/>(terminal)"]
+
+    subgraph app["pokedexcli"]
+        repl["REPL<br/>read · parse · dispatch"]
+        cmds["Command handlers<br/>map · explore · catch · inspect · pokedex"]
+        state[("Session state<br/>caught Pokémon · page cursors")]
+        client["PokéAPI client<br/>HTTP + JSON"]
+        cache[("Cache<br/>in-memory TTL")]
+
+        repl --> cmds
+        cmds <--> state
+        cmds --> client
+        client <--> cache
+    end
+
+    api["PokéAPI"]
+
+    user -->|command| repl
+    client -->|cache miss| api
